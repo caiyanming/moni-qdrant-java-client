@@ -12,6 +12,21 @@ import java.nio.file.StandardOpenOption
 import java.time.ZoneOffset
 import java.util.regex.Pattern
 
+buildscript {
+	repositories {
+		maven {
+			url 'https://maven.aliyun.com/repository/public'
+			allowInsecureProtocol = false
+		}
+		maven {
+			url 'https://maven.aliyun.com/repository/gradle-plugin'
+			allowInsecureProtocol = false
+		}
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+
 plugins {
 	id 'java-library'
 	id 'idea'
@@ -29,12 +44,27 @@ version = packageVersion
 description = 'Official Java client for Qdrant vector database'
 
 repositories {
-	// google mirror for maven
+	// 配置阿里云Maven镜像源
+	maven {
+		url 'https://maven.aliyun.com/repository/public/'
+	}
+	maven {
+		url 'https://maven.aliyun.com/repository/spring/'
+	}
+	maven {
+		url 'https://maven.aliyun.com/repository/gradle-plugin/'
+	}
+	maven {
+		url 'https://maven.aliyun.com/repository/spring-plugin/'
+	}
+	
+	// google mirror for maven (备用)
 	maven {
 		url 'https://maven-central.storage-download.googleapis.com/maven2/'
 	}
-	mavenCentral()
+	
 	mavenLocal()
+	mavenCentral()
 }
 
 java {
@@ -82,14 +112,22 @@ jar {
 def grpcVersion = '1.65.1'
 def protocVersion = '3.25.4'
 def slf4jVersion = '2.0.14'
+def reactorVersion = '3.7.3'
 def testcontainersVersion = '1.20.1'
 def jUnitVersion = '5.10.2'
 
 dependencies {
 	errorprone "com.uber.nullaway:nullaway:0.10.18"
 
+	// gRPC 核心依赖
 	implementation "io.grpc:grpc-protobuf:${grpcVersion}"
 	implementation "io.grpc:grpc-stub:${grpcVersion}"
+	
+	// 响应式核心依赖 - 纯响应式实现
+	implementation "io.projectreactor:reactor-core:${reactorVersion}"
+	implementation "com.salesforce.servicelibs:reactor-grpc-stub:1.2.4"
+	
+	// 日志
 	implementation "org.slf4j:slf4j-api:${slf4jVersion}"
 
 	compileOnly "org.apache.tomcat:annotations-api:6.0.53"
@@ -98,10 +136,12 @@ dependencies {
 
 	runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
 
+	// 测试依赖
 	testImplementation "io.grpc:grpc-testing:${grpcVersion}"
+	testImplementation "io.projectreactor:reactor-test:${reactorVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-params:${jUnitVersion}"
-	testImplementation "org.mockito:mockito-core:3.4.0"
+	testImplementation "org.mockito:mockito-core:5.14.2"
 	testImplementation "org.slf4j:slf4j-nop:${slf4jVersion}"
 	testImplementation "org.testcontainers:qdrant:${testcontainersVersion}"
 	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
