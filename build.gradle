@@ -286,8 +286,12 @@ signing {
 	def signingKeyId = findProperty("signingKeyId")
     def signingKey = findProperty("signingKey")
     def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-    sign publishing.publications.mavenJava
+    
+    // 只在有签名密钥时才进行签名
+    if (signingKeyId && signingKey && signingPassword) {
+        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        sign publishing.publications.mavenJava
+    }
 }
 
 spotless {
