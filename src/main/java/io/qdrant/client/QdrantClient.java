@@ -117,6 +117,15 @@ public interface QdrantClient extends AutoCloseable {
   Mono<PointsOperationResponse> delete(String collectionName, Flux<PointId> pointIds);
 
   /**
+   * Deletes points matching the specified filter.
+   *
+   * @param collectionName the name of the collection
+   * @param filter the filter to identify points to delete
+   * @return a Mono containing the update result
+   */
+  Mono<PointsOperationResponse> deleteByFilter(String collectionName, Filter filter);
+
+  /**
    * Retrieves points by their IDs.
    *
    * @param collectionName the name of the collection

@@ -294,6 +294,28 @@ public class QdrantGrpcClient implements QdrantClient {
   }
 
   @Override
+  public Mono<PointsOperationResponse> deleteByFilter(String collectionName, Filter filter) {
+    DeletePoints request =
+        DeletePoints.newBuilder()
+            .setCollectionName(collectionName)
+            .setPoints(PointsSelector.newBuilder().setFilter(filter).build())
+            .build();
+
+    return Mono.<PointsOperationResponse>create(
+            sink -> {
+              logger.debug("Deleting points by filter in collection: {}", collectionName);
+              pointsStub.delete(request, createResponseObserver(sink, "Delete points by filter"));
+            })
+        .timeout(defaultTimeout)
+        .retry(2)
+        .doOnSuccess(
+            result -> logger.debug("Delete by filter completed for collection: {}", collectionName))
+        .doOnError(
+            error ->
+                logger.error("Delete by filter failed for collection: {}", collectionName, error));
+  }
+
+  @Override
   public Flux<RetrievedPoint> getPoints(
       String collectionName, Flux<PointId> pointIds, boolean withPayload, boolean withVectors) {
     return pointIds
