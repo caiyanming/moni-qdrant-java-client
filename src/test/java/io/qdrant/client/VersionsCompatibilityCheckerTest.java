@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class VersionsCompatibilityCheckerTest {
+class VersionsCompatibilityCheckerTest {
   private static Stream<Object[]> validVersionProvider() {
     return Stream.of(
         new Object[] {"1.2.3", 1, 2},
@@ -21,7 +21,7 @@ public class VersionsCompatibilityCheckerTest {
 
   @ParameterizedTest
   @MethodSource("validVersionProvider")
-  public void testParseVersion_validVersion(String versionStr, int expectedMajor, int expectedMinor)
+  void testParseVersion_validVersion(String versionStr, int expectedMajor, int expectedMinor)
       throws Exception {
     Method method =
         VersionsCompatibilityChecker.class.getDeclaredMethod("parseVersion", String.class);
@@ -37,7 +37,7 @@ public class VersionsCompatibilityCheckerTest {
 
   @ParameterizedTest
   @MethodSource("invalidVersionProvider")
-  public void testParseVersion_invalidVersion(String versionStr) throws Exception {
+  void testParseVersion_invalidVersion(String versionStr) throws Exception {
     Method method =
         VersionsCompatibilityChecker.class.getDeclaredMethod("parseVersion", String.class);
     method.setAccessible(true);
@@ -65,7 +65,7 @@ public class VersionsCompatibilityCheckerTest {
 
   @ParameterizedTest
   @MethodSource("versionCompatibilityProvider")
-  public void testIsCompatible(String clientVersion, String serverVersion, boolean expected) {
+  void testIsCompatible(String clientVersion, String serverVersion, boolean expected) {
     assertEquals(expected, VersionsCompatibilityChecker.isCompatible(clientVersion, serverVersion));
   }
 }

@@ -21,7 +21,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.qdrant.QdrantContainer;
 
 @Testcontainers
-public class ApiKeyTest {
+class ApiKeyTest {
   @Container
   private static final QdrantContainer QDRANT_CONTAINER =
       new QdrantContainer(DockerImage.QDRANT_IMAGE)

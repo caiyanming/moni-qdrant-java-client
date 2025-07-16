@@ -32,7 +32,7 @@ class SnapshotsTest {
   private String testName;
 
   @BeforeEach
-  public void setup(TestInfo testInfo) {
+  void setup(TestInfo testInfo) {
     testName = testInfo.getDisplayName().replace("()", "");
     channel =
         Grpc.newChannelBuilder(
