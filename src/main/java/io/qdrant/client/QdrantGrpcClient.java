@@ -85,7 +85,30 @@ public class QdrantGrpcClient implements QdrantClient {
     if (callCredentials != null) {
       stub = stub.withCallCredentials(callCredentials);
     }
-    return stub.withDeadlineAfter(defaultTimeout.toMillis(), TimeUnit.MILLISECONDS);
+    return stub;
+  }
+
+  private <T extends io.grpc.stub.AbstractAsyncStub<T>> T stubWithTimeout(T stub) {
+    if (defaultTimeout != null && !defaultTimeout.isZero() && !defaultTimeout.isNegative()) {
+      return stub.withDeadlineAfter(defaultTimeout.toMillis(), TimeUnit.MILLISECONDS);
+    }
+    return stub;
+  }
+
+  private CollectionsGrpc.CollectionsStub collectionsStubWithTimeout() {
+    return stubWithTimeout(this.collectionsStub);
+  }
+
+  private PointsGrpc.PointsStub pointsStubWithTimeout() {
+    return stubWithTimeout(this.pointsStub);
+  }
+
+  private SnapshotsGrpc.SnapshotsStub snapshotsStubWithTimeout() {
+    return stubWithTimeout(this.snapshotsStub);
+  }
+
+  private QdrantGrpc.QdrantStub qdrantStubWithTimeout() {
+    return stubWithTimeout(this.qdrantStub);
   }
 
   // ========== Collection Management ==========
@@ -95,7 +118,8 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<CollectionOperationResponse>create(
             sink -> {
               logger.debug("Creating collection: {}", request.getCollectionName());
-              collectionsStub.create(request, createResponseObserver(sink, "Create collection"));
+              collectionsStubWithTimeout()
+                  .create(request, createResponseObserver(sink, "Create collection"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -113,9 +137,10 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<ListCollectionsResponse>create(
             sink -> {
               logger.debug("Listing collections");
-              collectionsStub.list(
-                  ListCollectionsRequest.getDefaultInstance(),
-                  createResponseObserver(sink, "List collections"));
+              collectionsStubWithTimeout()
+                  .list(
+                      ListCollectionsRequest.getDefaultInstance(),
+                      createResponseObserver(sink, "List collections"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -131,7 +156,8 @@ public class QdrantGrpcClient implements QdrantClient {
               logger.debug("Getting collection info: {}", collectionName);
               GetCollectionInfoRequest request =
                   GetCollectionInfoRequest.newBuilder().setCollectionName(collectionName).build();
-              collectionsStub.get(request, createResponseObserver(sink, "Get collection info"));
+              collectionsStubWithTimeout()
+                  .get(request, createResponseObserver(sink, "Get collection info"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -148,7 +174,8 @@ public class QdrantGrpcClient implements QdrantClient {
               logger.debug("Deleting collection: {}", collectionName);
               DeleteCollection request =
                   DeleteCollection.newBuilder().setCollectionName(collectionName).build();
-              collectionsStub.delete(request, createResponseObserver(sink, "Delete collection"));
+              collectionsStubWithTimeout()
+                  .delete(request, createResponseObserver(sink, "Delete collection"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -163,8 +190,9 @@ public class QdrantGrpcClient implements QdrantClient {
               logger.debug("Checking if collection exists: {}", collectionName);
               CollectionExistsRequest request =
                   CollectionExistsRequest.newBuilder().setCollectionName(collectionName).build();
-              collectionsStub.collectionExists(
-                  request, createResponseObserver(sink, "Check collection exists"));
+              collectionsStubWithTimeout()
+                  .collectionExists(
+                      request, createResponseObserver(sink, "Check collection exists"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -183,7 +211,8 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<SearchResponse>create(
             sink -> {
               logger.debug("Searching in collection: {}", request.getCollectionName());
-              pointsStub.search(request, createResponseObserver(sink, "Search points"));
+              pointsStubWithTimeout()
+                  .search(request, createResponseObserver(sink, "Search points"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -222,8 +251,8 @@ public class QdrantGrpcClient implements QdrantClient {
                             "Batch searching {} requests in collection: {}",
                             batch.size(),
                             collectionName);
-                        pointsStub.searchBatch(
-                            request, createResponseObserver(sink, "Batch search"));
+                        pointsStubWithTimeout()
+                            .searchBatch(request, createResponseObserver(sink, "Batch search"));
                       })
                   .timeout(defaultTimeout.multipliedBy(2)) // Longer timeout for batch operations
                   .retry(2)
@@ -253,7 +282,8 @@ public class QdrantGrpcClient implements QdrantClient {
                             "Upserting {} points in collection: {}",
                             pointsBatch.size(),
                             collectionName);
-                        pointsStub.upsert(request, createResponseObserver(sink, "Upsert points"));
+                        pointsStubWithTimeout()
+                            .upsert(request, createResponseObserver(sink, "Upsert points"));
                       })
                   .timeout(defaultTimeout.multipliedBy(3)) // Longer timeout for large upserts
                   .retry(2);
@@ -283,7 +313,8 @@ public class QdrantGrpcClient implements QdrantClient {
                   sink -> {
                     logger.debug(
                         "Deleting {} points in collection: {}", idList.size(), collectionName);
-                    pointsStub.delete(request, createResponseObserver(sink, "Delete points"));
+                    pointsStubWithTimeout()
+                        .delete(request, createResponseObserver(sink, "Delete points"));
                   });
             })
         .timeout(defaultTimeout)
@@ -304,7 +335,8 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<PointsOperationResponse>create(
             sink -> {
               logger.debug("Deleting points by filter in collection: {}", collectionName);
-              pointsStub.delete(request, createResponseObserver(sink, "Delete points by filter"));
+              pointsStubWithTimeout()
+                  .delete(request, createResponseObserver(sink, "Delete points by filter"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -336,7 +368,8 @@ public class QdrantGrpcClient implements QdrantClient {
                       sink -> {
                         logger.debug(
                             "Getting {} points from collection: {}", idList.size(), collectionName);
-                        pointsStub.get(request, createResponseObserver(sink, "Get points"));
+                        pointsStubWithTimeout()
+                            .get(request, createResponseObserver(sink, "Get points"));
                       })
                   .timeout(defaultTimeout)
                   .retry(2)
@@ -358,8 +391,8 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<CountResponse>create(
             sink -> {
               logger.debug("Counting points in collection: {}", collectionName);
-              pointsStub.count(
-                  requestBuilder.build(), createResponseObserver(sink, "Count points"));
+              pointsStubWithTimeout()
+                  .count(requestBuilder.build(), createResponseObserver(sink, "Count points"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -391,7 +424,8 @@ public class QdrantGrpcClient implements QdrantClient {
               return Mono.<PointsOperationResponse>create(
                   sink -> {
                     logger.debug("Setting payload in collection: {}", collectionName);
-                    pointsStub.setPayload(request, createResponseObserver(sink, "Set payload"));
+                    pointsStubWithTimeout()
+                        .setPayload(request, createResponseObserver(sink, "Set payload"));
                   });
             })
         .timeout(defaultTimeout)
@@ -419,7 +453,8 @@ public class QdrantGrpcClient implements QdrantClient {
               return Mono.<PointsOperationResponse>create(
                   sink -> {
                     logger.debug("Clearing payload in collection: {}", collectionName);
-                    pointsStub.clearPayload(request, createResponseObserver(sink, "Clear payload"));
+                    pointsStubWithTimeout()
+                        .clearPayload(request, createResponseObserver(sink, "Clear payload"));
                   });
             })
         .timeout(defaultTimeout)
@@ -438,9 +473,10 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<CreateSnapshotResponse>create(
             sink -> {
               logger.debug("Creating full snapshot");
-              snapshotsStub.create(
-                  CreateSnapshotRequest.getDefaultInstance(),
-                  createResponseObserver(sink, "Create snapshot"));
+              snapshotsStubWithTimeout()
+                  .create(
+                      CreateSnapshotRequest.getDefaultInstance(),
+                      createResponseObserver(sink, "Create snapshot"));
             })
         .timeout(defaultTimeout.multipliedBy(5)) // Snapshots can take longer
         .retry(2)
@@ -457,8 +493,8 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<CreateSnapshotResponse>create(
             sink -> {
               logger.debug("Creating snapshot for collection: {}", collectionName);
-              snapshotsStub.create(
-                  request, createResponseObserver(sink, "Create collection snapshot"));
+              snapshotsStubWithTimeout()
+                  .create(request, createResponseObserver(sink, "Create collection snapshot"));
             })
         .timeout(defaultTimeout.multipliedBy(5))
         .retry(2)
@@ -474,9 +510,10 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<ListSnapshotsResponse>create(
             sink -> {
               logger.debug("Listing snapshots");
-              snapshotsStub.list(
-                  ListSnapshotsRequest.getDefaultInstance(),
-                  createResponseObserver(sink, "List snapshots"));
+              snapshotsStubWithTimeout()
+                  .list(
+                      ListSnapshotsRequest.getDefaultInstance(),
+                      createResponseObserver(sink, "List snapshots"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -493,7 +530,8 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<DeleteSnapshotResponse>create(
             sink -> {
               logger.debug("Deleting snapshot: {}", snapshotName);
-              snapshotsStub.delete(request, createResponseObserver(sink, "Delete snapshot"));
+              snapshotsStubWithTimeout()
+                  .delete(request, createResponseObserver(sink, "Delete snapshot"));
             })
         .timeout(defaultTimeout)
         .retry(2)
@@ -509,9 +547,10 @@ public class QdrantGrpcClient implements QdrantClient {
     return Mono.<HealthCheckReply>create(
             sink -> {
               logger.debug("Performing health check");
-              qdrantStub.healthCheck(
-                  HealthCheckRequest.getDefaultInstance(),
-                  createResponseObserver(sink, "Health check"));
+              qdrantStubWithTimeout()
+                  .healthCheck(
+                      HealthCheckRequest.getDefaultInstance(),
+                      createResponseObserver(sink, "Health check"));
             })
         .timeout(Duration.ofSeconds(5)) // Short timeout for health checks
         .doOnSuccess(health -> logger.debug("Health check completed"))
