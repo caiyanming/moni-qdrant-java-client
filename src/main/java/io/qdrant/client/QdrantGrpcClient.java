@@ -325,16 +325,23 @@ public class QdrantGrpcClient implements QdrantClient {
   }
 
   @Override
-  public Mono<PointsOperationResponse> deleteByFilter(String collectionName, Filter filter) {
-    DeletePoints request =
+  public Mono<PointsOperationResponse> deleteByFilter(
+      String collectionName, Filter filter, boolean wait) {
+    DeletePoints.Builder requestBuilder =
         DeletePoints.newBuilder()
             .setCollectionName(collectionName)
-            .setPoints(PointsSelector.newBuilder().setFilter(filter).build())
-            .build();
+            .setPoints(PointsSelector.newBuilder().setFilter(filter).build());
+
+    if (wait) {
+      requestBuilder.setWait(true);
+    }
+
+    DeletePoints request = requestBuilder.build();
 
     return Mono.<PointsOperationResponse>create(
             sink -> {
-              logger.debug("Deleting points by filter in collection: {}", collectionName);
+              logger.debug(
+                  "Deleting points by filter in collection: {} (wait={})", collectionName, wait);
               pointsStubWithTimeout()
                   .delete(request, createResponseObserver(sink, "Delete points by filter"));
             })

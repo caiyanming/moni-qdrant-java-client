@@ -123,7 +123,19 @@ public interface QdrantClient extends AutoCloseable {
    * @param filter the filter to identify points to delete
    * @return a Mono containing the update result
    */
-  Mono<PointsOperationResponse> deleteByFilter(String collectionName, Filter filter);
+  default Mono<PointsOperationResponse> deleteByFilter(String collectionName, Filter filter) {
+    return deleteByFilter(collectionName, filter, false);
+  }
+
+  /**
+   * Deletes points matching the specified filter with control over completion semantics.
+   *
+   * @param collectionName the name of the collection
+   * @param filter the filter to identify points to delete
+   * @param wait when true, waits for the operation to complete before returning
+   * @return a Mono containing the update result
+   */
+  Mono<PointsOperationResponse> deleteByFilter(String collectionName, Filter filter, boolean wait);
 
   /**
    * Retrieves points by their IDs.
